@@ -22,6 +22,22 @@ The only official sources are:
 -->
 
 <!-- no official site warning -->
+<a name="Extra Info"><h2>🔧 Extra Info</h2></a>
+
+• This version of Natro Macro allows you to gather on the Hive Hub field by making you join a public/private hive hub game (depending on if you put a vip link on the macro).
+
+• By selecting to gather on the Hive Hub field you will automatically join a hive hub game (unless you enabled any planters/quests and etc), the hivehub path will then take you to the middle of the field, the default pattern is Stationary but you could obviously change it like i did by creating another pattern named `Scythe.ahk` (which was optimized for player using the Dark Scythe).
+
+• Other tabs such as Kill/Collect, Quests, Planters are compatible with the hive hub field gathering, since you are in the hive hub field, there is a "switch" that will make you join the main game/hive hub, Note that there are different kind of gather interrupt and some might be ignored (i.e. planters will wait for your gather to end (base gather time is set to a day), however high priority interrupt gather like mondo/quests will reset your character then join the main game).
+
+I would like to appologize for any wrongdoings or missed credit, this is my first time using Github, so i might do some mistakes.
+For any Questions/Suggestions/Correction/Contact related stuff you can DM me via Discord `ghuz_`.
+
+<a name="Credits"><h2>📜 Credits</h2></a>
+
+Thanks to the natro macro team for making this macro in the first place
+The already existing pull request for the hive hub addition by huner2 `https://github.com/NatroTeam/NatroMacro/pull/717`
+
 > [!CAUTION]
 > We do **not** have a website. The only official place to download Natro Macro is this repository and [discord.gg/natromacro][discord-link].
 
