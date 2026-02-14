@@ -7414,7 +7414,7 @@ nm_ServerLink(GuiCtrl, *){
 	k := GuiCtrl.Name
 	str := GuiCtrl.Value
 
-	RegExMatch(str, "i)((http(s)?):\/\/)?((www|web)\.)?roblox\.com\/([a-z]{2}\/)?games\/\d+\/?([^\/]*)\?privateServerLinkCode=.{32}(\&[^\/]*)*", &NewPrivServer)
+	RegExMatch(str, "i)((http(s)?):\/\/)?((www|web)\.)?roblox\.com\/([a-z]{2}\/)?games\/1537690962\/?([^\/]*)\?privateServerLinkCode=.{32}(\&[^\/]*)*", &NewPrivServer)
 
 	if ((StrLen(str) > 0) && !IsObject(NewPrivServer))
 	{
@@ -17110,7 +17110,7 @@ LegacyReconnect(linkCode, i)
 	, exe := (pEXE > 0) ? StrGet(pEXE) : ""
 	, params := (pPARAMS > 0) ? StrGet(pPARAMS) : ""
 
-	url := "https://www.roblox.com/games/1537690962/Hive-Hub?privateServerLinkCode=" linkCode
+	url := "https://www.roblox.com/games/1537690962?privateServerLinkCode=" linkCode
 	if ((StrLen(exe) > 0) && (StrLen(params) > 0))
 		ShellRun(exe, StrReplace(params, "%1", url)), success := 0
 	else
