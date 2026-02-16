@@ -2819,6 +2819,7 @@ MainGui.Add("Text", "x168 y69 +BackgroundTrans Hidden vTextFields", "Fields:")
 (GuiCtrl := MainGui.Add("CheckBox", "x390 y62 vStingerMountainTopCheck Disabled Hidden Checked" StingerMountainTopCheck, "Mountain Top")).Section := "Collect", GuiCtrl.OnEvent("Click", nm_saveConfig)
 (GuiCtrl := MainGui.Add("CheckBox", "x390 y80 vStingerPepperCheck Disabled Hidden Checked" StingerPepperCheck, "Pepper")).Section := "Collect", GuiCtrl.OnEvent("Click", nm_saveConfig)
 
+
 ;bosses
 MainGui.SetFont("w700")
 MainGui.Add("GroupBox", "x149 y104 w341 h126 vBossesGroupBox Hidden", "Bosses")
@@ -3148,7 +3149,11 @@ SetLoadingProgress(38)
 
 ;Manual Planters
 MPlanterList := ["", "Plastic", "Candy", "Blue Clay", "Red Clay", "Tacky", "Pesticide", "Heat Treated", "Hydroponic", "Petal", "Planter of Plenty", "Paper", "Ticket"]
-(MFieldList := [""]).Push(fieldnamelist*)
+MFieldList := [""]
+for name in fieldnamelist {
+    if (name != "Hivehub")
+        MFieldList.Push(name)
+}
 hidden := ((PlanterMode = 1) ? "" : " Hidden")
 
 ; Headers
@@ -3233,6 +3238,7 @@ SetLoadingProgress(100)
 
 ;unlock tabs
 nm_LockTabs(0)
+nm_HiveHubOverride()
 nm_setStatus("Startup", "UI")
 TabCtrl.Focus()
 MainGui.Title := "Natro Macro"
@@ -4207,6 +4213,7 @@ nm_FieldSelect1(GuiCtrl?, *){
 	CurrentField:=FieldName1
 	nm_WebhookEasterEgg()
 	nm_HiveHubWarning()
+	nm_HiveHubOverride()
 }
 nm_FieldSelect2(GuiCtrl?, *){
 	global
@@ -4279,6 +4286,7 @@ nm_FieldSelect2(GuiCtrl?, *){
 	}
 	nm_WebhookEasterEgg()
 	nm_HiveHubWarning()
+	nm_HiveHubOverride()
 }
 nm_FieldSelect3(GuiCtrl?, *){
 	global
@@ -4345,6 +4353,7 @@ nm_FieldSelect3(GuiCtrl?, *){
 	}
 	nm_WebhookEasterEgg()
 	nm_HiveHubWarning()
+	nm_HiveHubOverride()
 }
 nm_FieldDefaults(num){
 	global FieldDefault, FieldPatternSizeArr
@@ -4435,11 +4444,63 @@ nm_HiveHubWarning(GuiCtrl?, *){
 	(
 	WARNING:
 	You will gather on the Hive Hub field, which means that you will be teleported in a Hivehub server and not the main game.
-	Enabling any other tabs such as Collect/Kill, Boost, Quests, Planters will result in a lot less time spend on the hive hub field.
+	Some options aren't possible in the hive hub field and will automatically be disabled.
 
 	It is recommended to disable everything so that you can stay for the longest time on the field.
 	)", "Hive Hub Gathering", 0x40000
 	}
+}
+nm_HiveHubOverride() { ; Disable some options when the hive hub field is selected
+	if (FieldName1 = MainGui["Hivehub"].Text || FieldName2 = MainGui["Hivehub"].Text || FieldName3 = MainGui["Hivehub"].Text ){
+        MainGui["StingerCheck"].Enabled := 0
+        MainGui["StingerCheck"].Value := 0
+        MainGui["GatherFieldSipping"].Enabled := 0
+        MainGui["GatherFieldSipping"].Value := 0
+        MainGui["NightMemoryMatchCheck"].Enabled := 0
+        MainGui["NightMemoryMatchCheck"].Value := 0
+        MainGui["FieldDriftCheck1"].Enabled := 0
+        MainGui["FieldDriftCheck2"].Enabled := 0
+        MainGui["FieldDriftCheck3"].Enabled := 0
+        MainGui["FieldDriftCheck1"].Value := 0
+        MainGui["FieldDriftCheck2"].Value := 0
+        MainGui["FieldDriftCheck3"].Value := 0
+        MainGui["Clock"].Enabled := 0
+        MainGui["Clock"].Value := 0
+        MainGui["CBLeft"].Enabled := 0
+        MainGui["CBRight"].Enabled := 0
+		MainGui["ConvertBalloon"].Value := "Never"
+		MainGui["ConvertMins"].Enabled := 0
+		MainGui["FSL"].Value := "Center"
+		MainGui["FSL1Left"].Enabled := 0
+		MainGui["FSL1Right"].Enabled := 0
+		MainGui["FSL2Left"].Enabled := 0
+		MainGui["FSL2Right"].Enabled := 0
+		MainGui["FSL3Left"].Enabled := 0
+		MainGui["FSL3Right"].Enabled := 0
+		MainGui["FieldSprinklerDist1"].Enabled := 0
+		MainGui["FieldSprinklerDist2"].Enabled := 0
+		MainGui["FieldSprinklerDist3"].Enabled := 0
+    } else {
+        MainGui["StingerCheck"].Enabled := 1
+        MainGui["GatherFieldSipping"].Enabled := 1
+        MainGui["NightMemoryMatchCheck"].Enabled := 1
+        MainGui["FieldDriftCheck1"].Enabled := 1
+        MainGui["FieldDriftCheck2"].Enabled := 1
+        MainGui["FieldDriftCheck3"].Enabled := 1
+        MainGui["Clock"].Enabled := 1
+        MainGui["CBLeft"].Enabled := 1
+        MainGui["CBRight"].Enabled := 1
+		MainGui["FSL1Left"].Enabled := 1
+		MainGui["FSL1Right"].Enabled := 1
+		MainGui["FSL2Left"].Enabled := 1
+		MainGui["FSL2Right"].Enabled := 1
+		MainGui["FSL3Left"].Enabled := 1
+		MainGui["FSL3Right"].Enabled := 1
+		MainGui["Distance"].Enabled := 1
+		MainGui["FieldSprinklerDist1"].Enabled := 1
+		MainGui["FieldSprinklerDist2"].Enabled := 1
+		MainGui["FieldSprinklerDist3"].Enabled := 1
+    }
 }
 nm_FDCHelp(*){
 	MsgBox "
@@ -5213,21 +5274,6 @@ nm_HotbarWhile(GuiCtrl?, *){
 			HotbarWhile%i% := MainGui["HotbarWhile" i].Text
 			switch HotbarWhile%i%, 0
 			{
-				case "microconverter":
-				MainGui["HBText" i].Text := PFieldBoosted ? "@ Boosted" : "@ Full Pack"
-				MainGui["HotbarTime" i].Visible := 0
-				MainGui["HBTimeText" i].Visible := 0
-				MainGui["HBConditionText" i].Visible := 0
-				MainGui["HotbarMax" i].Visible := 0
-				MainGui["HBText" i].Visible := 1
-
-				case "whirligig":
-				MainGui["HBText" i].Text := PFieldBoosted ? "@ Boosted" : "@ Hive Return"
-				MainGui["HotbarTime" i].Visible := 0
-				MainGui["HBTimeText" i].Visible := 0
-				MainGui["HBConditionText" i].Visible := 0
-				MainGui["HotbarMax" i].Visible := 0
-				MainGui["HBText" i].Visible := 1
 
 				case "enzymes":
 				MainGui["HBText" i].Text := PFieldBoosted ? "@ Boosted" : "@ Converting Balloon"
@@ -5246,11 +5292,14 @@ nm_HotbarWhile(GuiCtrl?, *){
 				MainGui["HBText" i].Visible := 1
 
 				case "snowflake":
-				if (beesmasActive = 0)
+				if (beesmasActive = 0 || currentField = "Hivehub")
 				{
 					if IsSet(GuiCtrl)
 					{
-						MsgBox "This option is only available during Beesmas!", "Snowflake", 0x1030
+						if (currentField = "Hivehub")
+							MsgBox "This option is only available outside of the hive hub!", "Snowflake", 0x1030
+						else
+							MsgBox "This option is only available during Beesmas!", "Snowflake", 0x1030
 						HotbarWhile%i% := "Never"
 						MainGui["HotbarWhile" i].Text := "Never"
 						MainGui["HotbarTime" i].Visible := 0
@@ -5271,6 +5320,56 @@ nm_HotbarWhile(GuiCtrl?, *){
 					MainGui["HBTimeText" i].Visible := 1
 					MainGui["HBConditionText" i].Visible := 1
 					MainGui["HotbarMax" i].Visible := 1
+				}
+
+				case "microconverter":
+				if (currentField = "Hivehub")
+				{
+					if IsSet(GuiCtrl)
+					{
+						MsgBox "This option is only available outside of the Hive Hub field!"
+						HotbarWhile%i% := "Never"
+						MainGui["HotbarWhile" i].Text := "Never"
+						MainGui["HotbarTime" i].Visible := 0
+						MainGui["HBTimeText" i].Visible := 0
+						MainGui["HBConditionText" i].Visible := 0
+						MainGui["HotbarMax" i].Visible := 0
+						MainGui["HBText" i].Visible := 0
+					}
+				}
+				else
+				{
+				MainGui["HBText" i].Text := PFieldBoosted ? "@ Boosted" : "@ Full Pack"
+				MainGui["HotbarTime" i].Visible := 0
+				MainGui["HBTimeText" i].Visible := 0
+				MainGui["HBConditionText" i].Visible := 0
+				MainGui["HotbarMax" i].Visible := 0
+				MainGui["HBText" i].Visible := 1
+				}
+
+				case "whirligig":
+				if (currentField = "Hivehub")
+				{
+					if IsSet(GuiCtrl)
+					{
+						MsgBox "This option is only available outside of the Hive Hub field!"
+						HotbarWhile%i% := "Never"
+						MainGui["HotbarWhile" i].Text := "Never"
+						MainGui["HotbarTime" i].Visible := 0
+						MainGui["HBTimeText" i].Visible := 0
+						MainGui["HBConditionText" i].Visible := 0
+						MainGui["HotbarMax" i].Visible := 0
+						MainGui["HBText" i].Visible := 0
+					}
+				}
+				else
+				{
+				MainGui["HBText" i].Text := PFieldBoosted ? "@ Boosted" : "@ Hive Return"
+				MainGui["HotbarTime" i].Visible := 0
+				MainGui["HBTimeText" i].Visible := 0
+				MainGui["HBConditionText" i].Visible := 0
+				MainGui["HotbarMax" i].Visible := 0
+				MainGui["HBText" i].Visible := 1
 				}
 
 				case "never":
@@ -5686,7 +5785,24 @@ nm_autoFieldBoostGui(*){
 	AFBGui.Add("Text", "x185 y136 +BackgroundTrans", "Deactivate Field Boosting After:")
 	(GuiCtrl := AFBGui.Add("Edit", "x255 y152 w45 h20 limit6 Number vAFBHoursLimit Disabled" (!AFBHoursLimitEnable), AFBHoursLimit)).Section := "Boost", GuiCtrl.OnEvent("Change", nm_saveConfig)
 	;AFBGui.Add("Text", "x5 y123 +BackgroundTrans", "________________________________________________________")
+	if (currentField = "Hivehub") {
+		nm_HiveHubBoostNotice()
+		AFBGui["Dice"].Enabled := 0
+		AFBGui["Free Field Boosters"].Enabled := 0
+	}
 	AFBGui.Show("w360 h170")
+}
+nm_HiveHubBoostNotice(*){
+	MsgBox "
+	(
+	NOTICE:
+	This option works by maintaning a field boost multiplier using one of the three free field booster, dices, and glitters on the field you selected, however the hive hub field doesn't have a free field booster nor allows for field dices to be used.
+
+	WHICH MEANS:
+	* You can still use this tab if you want to further customize how you want to boost this field, however you will only be able to use glitters.
+	* You should use the "Hotbar Slots" option if you want to use other materials.
+
+	)", "Auto Field Boost Notice"
 }
 nm_AFBHelpButton(*){
 	MsgBox "
@@ -5721,7 +5837,7 @@ nm_AFBDiceEnableHelpButton(*){
 	This setting indicates if you would like to use Field Dice (NOT Smooth or Loaded) to boost your current gathering field.
 	The Hotbar Slot indicates which slot on your hotbar contains these dice.
 
-	These Dice will be re-rolled until your your gathering field is boosted.
+	These Dice will be re-rolled until your gathering field is boosted.
 	If Glitter is also selected the macro will alternate between using Dice and Glitter so it will stack Field Boost multipliers.
 
 	CAUTION!!
@@ -5793,8 +5909,12 @@ nm_AFBHoursLimitEnableHelpButton(*){
 	)", "Hours Limit Deactivation"
 }
 nm_resetUsedDice(*){
-	global AFBdiceUsed:=0
-	IniWrite AFBdiceUsed, "settings\nm_config.ini", "Boost", "AFBdiceUsed"
+	if (currentField = "Hivehub")
+		nm_resetUsedGlitter()
+	else {
+		global AFBdiceUsed:=0
+		IniWrite AFBdiceUsed, "settings\nm_config.ini", "Boost", "AFBdiceUsed"
+	}
 }
 nm_resetUsedGlitter(*){
 	global AFBglitterUsed:=0
@@ -5829,7 +5949,7 @@ nm_AFBDiceEnableCheck(*){
 	global
 	AFBDiceEnable := AFBGui["AFBDiceEnable"].Value
 	AFBDiceLimitEnableSel := AFBGui["AFBDiceLimitEnableSel"].Text
-	if(not AFBDiceEnable){
+	if(currentField = "Hivehub" || not AFBDiceEnable){
 		AFBGui["AFBDiceHotbar"].Enabled := 0
 		AFBGui["AFBDiceLimitEnableSel"].Enabled := 0
 		AFBGui["AFBDiceLimit"].Enabled := 0
@@ -6568,6 +6688,7 @@ ba_AutoHarvestSwitch_(*){
 ba_gotoPlanterFieldSwitch_(*){
 	global gotoPlanterField
 	GotoPlanterField := MainGui["GotoPlanterField"].Value
+	
 	if(GotoPlanterField){
 		MainGui["GotoPlanterField"].Value := 0
 		if (MsgBox("
