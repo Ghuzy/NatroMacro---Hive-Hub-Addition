@@ -312,7 +312,7 @@ nm_importPaths()
 				"stockings", "wreath", "feast", "gingerbread", "snowmachine", "candles", "samovar", "lidart", "gummybeacon", "rbpdelevel", ; beesmas
 				"honeylb", "honeystorm", "stickerstack", "stickerprinter", "normalmm", "megamm", "nightmm", "extrememm", "wintermm"], ; other
 		"gtf", ["bamboo", "blueflower", "cactus", "clover", "coconut", "dandelion", "mountaintop", "mushroom", "pepper", "pinetree", "pineapple", "pumpkin",
-				"rose", "spider", "strawberry", "stump", "sunflower"], ; go to field
+				"rose", "spider", "strawberry", "stump", "sunflower", "hivehub"], ; go to field
 		"gtp", ["bamboo", "blueflower", "cactus", "clover", "coconut", "dandelion", "mountaintop", "mushroom", "pepper", "pinetree", "pineapple", "pumpkin",
 				"rose", "spider", "strawberry", "stump", "sunflower"], ; go to planter
 		"gtq", ["black", "brown", "bucko", "honey", "polar", "riley"], ; go to questgiver
@@ -1829,6 +1829,21 @@ nm_importFieldDefaults()
 		, "invertFB", 0
 		, "invertLR", 0)
 
+	FieldDefault["Hivehub"] := Map("pattern", "Scythe"
+		, "size", "S"
+		, "width", 1
+		, "camera", "None"
+		, "turns", 1
+		, "sprinkler", "Center"
+		, "distance", 1
+		, "percent", 95
+		, "gathertime", 1440
+		, "convert", "Reset"
+		, "drift", 0
+		, "shiftlock", 1
+		, "invertFB", 0
+		, "invertLR", 0)
+
 	global StandardFieldDefault := ObjFullyClone(FieldDefault)
 
 	inipath := A_WorkingDir "\settings\field_config.ini"
@@ -2078,7 +2093,7 @@ HasPopStar:=0
 PopStarActive:=0
 PreviousAction:="None"
 CurrentAction:="Startup"
-fieldnamelist := ["Bamboo","Blue Flower","Cactus","Clover","Coconut","Dandelion","Mountain Top","Mushroom","Pepper","Pine Tree","Pineapple","Pumpkin","Rose","Spider","Strawberry","Stump","Sunflower"]
+fieldnamelist := ["Bamboo","Blue Flower","Cactus","Clover","Coconut","Dandelion","Mountain Top","Mushroom","Pepper","Pine Tree","Pineapple","Pumpkin","Rose","Spider","Strawberry","Stump","Sunflower","Hivehub"]
 hotbarwhilelist := ["Never","Always","At Hive","Gathering","Attacking","Microconverter","Whirligig","Enzymes","GatherStart","Snowflake"]
 sprinklerImages := ["saturator"]
 ReconnectDelay:=0
@@ -2088,6 +2103,9 @@ QuestBlueBoost := 0
 QuestRedBoost := 0
 HiveConfirmed := 0
 ShiftLockEnabled := 0
+HiveHubID:="15579077077"
+BssID:="1537690962"
+MainGame := 1
 VBStart := 0
 VBResults := {
 	; status states
@@ -3462,7 +3480,11 @@ SetLoadingProgress(38)
 
 ;Manual Planters
 MPlanterList := ["", "Plastic", "Candy", "Blue Clay", "Red Clay", "Tacky", "Pesticide", "Heat Treated", "Hydroponic", "Petal", "Planter of Plenty", "Paper", "Ticket"]
-(MFieldList := [""]).Push(fieldnamelist*)
+MFieldList := [""]
+for name in fieldnamelist {
+    if (name != "Hivehub")
+        MFieldList.Push(name)
+}
 hidden := ((PlanterMode = 1) ? "" : " Hidden")
 
 ; Headers
@@ -4562,6 +4584,8 @@ nm_FieldSelect1(GuiCtrl?, *){
 	MainGui["CurrentField"].Text := FieldName1
 	CurrentField:=FieldName1
 	nm_WebhookEasterEgg()
+	nm_HiveHubWarning()
+	nm_HiveHubOverride()
 }
 nm_FieldSelect2(GuiCtrl?, *){
 	global
@@ -4633,6 +4657,8 @@ nm_FieldSelect2(GuiCtrl?, *){
 		IniWrite FieldName2, "settings\nm_config.ini", "Gather", "FieldName2"
 	}
 	nm_WebhookEasterEgg()
+	nm_HiveHubWarning()
+	nm_HiveHubOverride()
 }
 nm_FieldSelect3(GuiCtrl?, *){
 	global
@@ -4698,6 +4724,8 @@ nm_FieldSelect3(GuiCtrl?, *){
 		IniWrite FieldName3, "settings\nm_config.ini", "Gather", "FieldName3"
 	}
 	nm_WebhookEasterEgg()
+	nm_HiveHubWarning()
+	nm_HiveHubOverride()
 }
 nm_FieldDefaults(num){
 	global FieldDefault, FieldPatternSizeArr
@@ -4782,6 +4810,69 @@ nm_FieldDefaults(num){
 	IniWrite FieldDriftCheck%num%, "settings\nm_config.ini", "Gather", "FieldDriftCheck" num
 	disableSave:=0
 }
+nm_HiveHubOverride() { ; Disable some options when the hive hub field is selected
+	if (FieldName1 = MainGui["Hivehub"].Text || FieldName2 = MainGui["Hivehub"].Text || FieldName3 = MainGui["Hivehub"].Text ){
+        MainGui["StingerCheck"].Enabled := 0
+        MainGui["StingerCheck"].Value := 0
+        MainGui["GatherFieldSipping"].Enabled := 0
+        MainGui["GatherFieldSipping"].Value := 0
+        MainGui["NightMemoryMatchCheck"].Enabled := 0
+        MainGui["NightMemoryMatchCheck"].Value := 0
+        MainGui["FieldDriftCheck1"].Enabled := 0
+        MainGui["FieldDriftCheck2"].Enabled := 0
+        MainGui["FieldDriftCheck3"].Enabled := 0
+        MainGui["FieldDriftCheck1"].Value := 0
+        MainGui["FieldDriftCheck2"].Value := 0
+        MainGui["FieldDriftCheck3"].Value := 0
+        MainGui["Clock"].Enabled := 0
+        MainGui["Clock"].Value := 0
+        MainGui["CBLeft"].Enabled := 0
+        MainGui["CBRight"].Enabled := 0
+		MainGui["ConvertBalloon"].Value := "Never"
+		MainGui["ConvertMins"].Enabled := 0
+		MainGui["FSL"].Value := "Center"
+		MainGui["FSL1Left"].Enabled := 0
+		MainGui["FSL1Right"].Enabled := 0
+		MainGui["FSL2Left"].Enabled := 0
+		MainGui["FSL2Right"].Enabled := 0
+		MainGui["FSL3Left"].Enabled := 0
+		MainGui["FSL3Right"].Enabled := 0
+		MainGui["FieldSprinklerDist1"].Enabled := 0
+		MainGui["FieldSprinklerDist2"].Enabled := 0
+		MainGui["FieldSprinklerDist3"].Enabled := 0
+    } else {
+        MainGui["StingerCheck"].Enabled := 1
+        MainGui["GatherFieldSipping"].Enabled := 1
+        MainGui["NightMemoryMatchCheck"].Enabled := 1
+        MainGui["FieldDriftCheck1"].Enabled := 1
+        MainGui["FieldDriftCheck2"].Enabled := 1
+        MainGui["FieldDriftCheck3"].Enabled := 1
+        MainGui["Clock"].Enabled := 1
+        MainGui["CBLeft"].Enabled := 1
+        MainGui["CBRight"].Enabled := 1
+		MainGui["FSL1Left"].Enabled := 1
+		MainGui["FSL1Right"].Enabled := 1
+		MainGui["FSL2Left"].Enabled := 1
+		MainGui["FSL2Right"].Enabled := 1
+		MainGui["FSL3Left"].Enabled := 1
+		MainGui["FSL3Right"].Enabled := 1
+		MainGui["Distance"].Enabled := 1
+		MainGui["FieldSprinklerDist1"].Enabled := 1
+		MainGui["FieldSprinklerDist2"].Enabled := 1
+		MainGui["FieldSprinklerDist3"].Enabled := 1
+    }
+}
+nm_HiveHubWarning(GuiCtrl?, *){
+	if (FieldName1 = MainGui["Hivehub"].Text || FieldName2 = MainGui["Hivehub"].Text || FieldName3 = MainGui["Hivehub"].Text){
+	MsgBox "
+	(
+	WARNING:
+	You selected to gather on the Hive Hub field, which means that you will be teleported in a Hivehub server to gather and not the main game.
+	Enabling any other tabs such as Collect/Kill, Boost, Quests, Planters will result in a lot of teleporting between those two games.
+	Some options are disabled because they can't be used whiele gathering on the hive hub (sprinkler, dices and such).
+	)", "Hive Hub Gathering", 0x40000
+	}
+}
 nm_FDCHelp(*){
 	MsgBox "
 	(
@@ -4840,7 +4931,7 @@ nm_FieldReturnType(GuiCtrl, *){
 		index := 3
 	}
 
-	i := (FieldReturnType%index% = "Walk") ? 1 : 2
+	i := (FieldReturnType%index% = "Walk") ? 1 : (FieldReturnType%index% = "Reset") ? 2 : 3
 
 	MainGui["FieldReturnType" index].Text := FieldReturnType%index% := val[(GuiCtrl.Name = "FRT" index "Right") ? (Mod(i, l) + 1) : (Mod(l + i - 2, l) + 1)]
 	IniWrite FieldReturnType%index%, "settings\nm_config.ini", "Gather", "FieldReturnType" index
@@ -5573,20 +5664,54 @@ nm_HotbarWhile(GuiCtrl?, *){
 			switch HotbarWhile%i%, 0
 			{
 				case "microconverter":
+				if (currentField = "Hivehub")
+				{
+					if IsSet(GuiCtrl)
+					{
+						MsgBox "This option is only available outside of the hive hub!", "Microconverter", 0x1030
+						HotbarWhile%i% := "Never"
+						MainGui["HotbarWhile" i].Text := "Never"
+						MainGui["HotbarTime" i].Visible := 0
+						MainGui["HBTimeText" i].Visible := 0
+						MainGui["HBConditionText" i].Visible := 0
+						MainGui["HotbarMax" i].Visible := 0
+						MainGui["HBText" i].Visible := 0
+					}
+				}
+				else
+				{
 				MainGui["HBText" i].Text := PFieldBoosted ? "@ Boosted" : "@ Full Pack"
 				MainGui["HotbarTime" i].Visible := 0
 				MainGui["HBTimeText" i].Visible := 0
 				MainGui["HBConditionText" i].Visible := 0
 				MainGui["HotbarMax" i].Visible := 0
 				MainGui["HBText" i].Visible := 1
+				}
 
 				case "whirligig":
+				if (currentField = "Hivehub")
+				{
+					if IsSet(GuiCtrl)
+					{
+						MsgBox "This option is only available outside of the hive hub!", "Whirligig", 0x1030
+						HotbarWhile%i% := "Never"
+						MainGui["HotbarWhile" i].Text := "Never"
+						MainGui["HotbarTime" i].Visible := 0
+						MainGui["HBTimeText" i].Visible := 0
+						MainGui["HBConditionText" i].Visible := 0
+						MainGui["HotbarMax" i].Visible := 0
+						MainGui["HBText" i].Visible := 0
+					}
+				}
+				else
+				{
 				MainGui["HBText" i].Text := PFieldBoosted ? "@ Boosted" : "@ Hive Return"
 				MainGui["HotbarTime" i].Visible := 0
 				MainGui["HBTimeText" i].Visible := 0
 				MainGui["HBConditionText" i].Visible := 0
 				MainGui["HotbarMax" i].Visible := 0
 				MainGui["HBText" i].Visible := 1
+				}
 
 				case "enzymes":
 				MainGui["HBText" i].Text := PFieldBoosted ? "@ Boosted" : "@ Converting Balloon"
@@ -5605,11 +5730,14 @@ nm_HotbarWhile(GuiCtrl?, *){
 				MainGui["HBText" i].Visible := 1
 
 				case "snowflake":
-				if (beesmasActive = 0)
+				if (beesmasActive = 0 || currentField = "Hivehub")
 				{
 					if IsSet(GuiCtrl)
 					{
-						MsgBox "This option is only available during Beesmas!", "Snowflake", 0x1030
+						if (currentField = "Hivehub")
+							MsgBox "This option is only available outside of the hive hub!", "Snowflake", 0x1030
+						else
+							MsgBox "This option is only available during Beesmas!", "Snowflake", 0x1030
 						HotbarWhile%i% := "Never"
 						MainGui["HotbarWhile" i].Text := "Never"
 						MainGui["HotbarTime" i].Visible := 0
@@ -6046,7 +6174,24 @@ nm_autoFieldBoostGui(*){
 	AFBGui.Add("Text", "x185 y136 +BackgroundTrans", "Deactivate Field Boosting After:")
 	(GuiCtrl := AFBGui.Add("Edit", "x255 y152 w45 h20 limit6 Number vAFBHoursLimit Disabled" (!AFBHoursLimitEnable), AFBHoursLimit)).Section := "Boost", GuiCtrl.OnEvent("Change", nm_saveConfig)
 	;AFBGui.Add("Text", "x5 y123 +BackgroundTrans", "________________________________________________________")
+	if (currentField = "Hivehub") {
+		nm_HiveHubBoostNotice()
+		AFBGui["Dice"].Enabled := 0
+		AFBGui["Free Field Boosters"].Enabled := 0
+	}
 	AFBGui.Show("w360 h170")
+}
+nm_HiveHubBoostNotice(*){
+	MsgBox "
+	(
+	NOTICE:
+	This option works by maintaning a field boost multiplier using one of the three free field booster, dices, and glitters on the field you selected, however the hive hub field doesn't have a free field booster nor allows for field dices to be used.
+
+	WHICH MEANS:
+	* You can still use this tab if you want to further customize how you want to boost this field, however you will only be able to use glitters.
+	* You should use the "Hotbar Slots" option if you want to use other materials.
+
+	)", "Auto Field Boost Notice"
 }
 nm_AFBHelpButton(*){
 	MsgBox "
@@ -6081,7 +6226,7 @@ nm_AFBDiceEnableHelpButton(*){
 	This setting indicates if you would like to use Field Dice (NOT Smooth or Loaded) to boost your current gathering field.
 	The Hotbar Slot indicates which slot on your hotbar contains these dice.
 
-	These Dice will be re-rolled until your your gathering field is boosted.
+	These Dice will be re-rolled until your gathering field is boosted.
 	If Glitter is also selected the macro will alternate between using Dice and Glitter so it will stack Field Boost multipliers.
 
 	CAUTION!!
@@ -6153,8 +6298,12 @@ nm_AFBHoursLimitEnableHelpButton(*){
 	)", "Hours Limit Deactivation"
 }
 nm_resetUsedDice(*){
-	global AFBdiceUsed:=0
-	IniWrite AFBdiceUsed, "settings\nm_config.ini", "Boost", "AFBdiceUsed"
+	if (currentField = "Hivehub")
+		nm_resetUsedGlitter()
+	else {
+		global AFBdiceUsed:=0
+		IniWrite AFBdiceUsed, "settings\nm_config.ini", "Boost", "AFBdiceUsed"
+	}
 }
 nm_resetUsedGlitter(*){
 	global AFBglitterUsed:=0
@@ -6189,7 +6338,7 @@ nm_AFBDiceEnableCheck(*){
 	global
 	AFBDiceEnable := AFBGui["AFBDiceEnable"].Value
 	AFBDiceLimitEnableSel := AFBGui["AFBDiceLimitEnableSel"].Text
-	if(not AFBDiceEnable){
+	if(currentField = "Hivehub" || not AFBDiceEnable){
 		AFBGui["AFBDiceHotbar"].Enabled := 0
 		AFBGui["AFBDiceLimitEnableSel"].Enabled := 0
 		AFBGui["AFBDiceLimit"].Enabled := 0
@@ -7843,7 +7992,7 @@ nm_ServerLink(GuiCtrl, *){
 	p := EditGetCurrentCol(GuiCtrl)
 	k := GuiCtrl.Name
 	str := Trim(GuiCtrl.Value)
-	RegExMatch(str, "i)roblox\.com\/([a-z]{2}\/)?games\/1537690962\/?([^\/]*)\?privateServerLinkCode=(?<code>[a-z0-9]{32})", &NewPrivLink) ; not too sure if LinkCode can have letters but better safe than sorry 
+	RegExMatch(str, "i)roblox\.com\/([a-z]{2}\/)?games\/(?:15579077077|1537690962)\/?([^\/]*)\?privateServerLinkCode=(?<code>[a-z0-9]{32})", &NewPrivLink) ; TODO might cause trouble
 	RegExMatch(str, "i)roblox\.com\/share\?code=(?<code>[a-f0-9]{32})&type=Server", &NewShareCode)
 
 	
@@ -7854,9 +8003,12 @@ nm_ServerLink(GuiCtrl, *){
 		wr.Open("GET", link, 1)
 		wr.Send()
 
+		if !InStr(wr.ResponseText, 'content="code?share"') && (currentField ="HiveHub") ; Prevent the use of "Share?Code" format when choosing to gather on hive hub
+			return failed("Incompatible link format with Hive Hub gathering", "Your private server link format is using a non supported way to teleport to a hivehub server.`r`nConsider changing your link format or remove it.")
+		
 		if !(wr.WaitForResponse(3000)) || wr.Status != 200 || !InStr(wr.ResponseText, "roblox:start_place_id") ; roblox:start_place_id is not present if the link is invalid
 			return failed("Failed to fetch link", "The link could not be fetched. Make sure you are using a valid Share Code link and that you copied the entire link.`r`n`r`nIt's also possible that roblox is down.")
-		
+
 		if !InStr(wr.ResponseText, 'content="1537690962"') ; All share code links contain a meta tag: <meta name="roblox:start_place_id" content="1537690962">. this is the BSS gameID
 			return failed("Invalid Share Code", "Your link is not for Bee Swarm Simulator by Onett.")
 
@@ -11041,7 +11193,7 @@ PostSubmacroMessage(submacro, args*){
 	DetectHiddenWindows 0
 }
 nm_Reset(checkAll:=1, wait:=2000, convert:=1, force:=0){
-	global resetTime, youDied, KeyDelay, SC_E, SC_Esc, SC_R, SC_Enter, RotRight, RotLeft, RotUp, RotDown, ZoomOut, objective, AFBrollingDice, AFBuseGlitter, AFBuseBooster, currentField, HiveConfirmed, GameFrozenCounter, bitmaps
+	global resetTime, youDied, KeyDelay, SC_E, SC_Esc, SC_R, SC_Enter, RotRight, RotLeft, RotUp, RotDown, ZoomOut, objective, AFBrollingDice, AFBuseGlitter, AFBuseBooster, currentField, HiveConfirmed, GameFrozenCounter, bitmaps, MainGame, TestReset
 	;check for game frozen conditions
 	if (GameFrozenCounter>=3) { ;3 strikes
 		nm_setStatus("Detected", "Roblox Game Frozen, Restarting")
@@ -11065,13 +11217,20 @@ nm_Reset(checkAll:=1, wait:=2000, convert:=1, force:=0){
 		nm_fieldBoostBooster()
 		nm_Night()
 	}
-	if(force=1) {
+	if(force=1 && !TestReset) { ; TODO TestReset in same if condition
 		HiveConfirmed:=0
 	}
+	if TestReset
+		HiveConfirmed:=1
 	while (!HiveConfirmed) {
 		;failsafe game frozen
-		if(Mod(A_Index, 10) = 0) {
+		if((Mod(A_Index, 10) = 0) && MainGame)  {
 			nm_setStatus("Closing", "and Re-Open Roblox")
+			CloseRoblox()
+			DisconnectCheck()
+			continue
+		} else if !MainGame {
+			nm_setStatus("Joining", "Main Game")
 			CloseRoblox()
 			DisconnectCheck()
 			continue
@@ -17615,7 +17774,7 @@ DisconnectCheck(testCheck := 0)
 {
 	global LastClock, LastGingerbread, HiveSlot, PrivServer, TotalDisconnects, SessionDisconnects, ReconnectMethod, PublicFallback, resetTime
 		, PlanterName1, PlanterName2, PlanterName3, PlanterHarvestTime1, PlanterHarvestTime2, PlanterHarvestTime3
-		, MacroState, ReconnectDelay
+		, MacroState, ReconnectDelay, MainGame, GameID, HiveHubID, BssID 
 		, FallbackServer1, FallbackServer2, FallbackServer3, beesmasActive
 	static ServerLabels := Map(0,"Public Server", 1,"Private Server", 2,"Fallback Server 1", 3,"Fallback Server 2", 4,"Fallback Server 3")
 
@@ -17649,7 +17808,12 @@ DisconnectCheck(testCheck := 0)
 		PostSubmacroMessage("StatMonitor", 0x5555, 6, 1)
 		IniWrite TotalDisconnects, "settings\nm_config.ini", "Status", "TotalDisconnects"
 		IniWrite SessionDisconnects, "settings\nm_config.ini", "Status", "SessionDisconnects"
-		nm_setStatus("Disconnected", "Reconnecting")
+		if !MainGame
+			nm_setStatus("Joining", "Main Game")
+		else if MainGame
+			nm_setStatus("Joining", "Hive Hub")
+		else 
+			nm_setStatus("Disconnected", "Reconnecting")
 	}
 
 	; obtain link codes from Private Server and Fallback Server links
@@ -17676,6 +17840,14 @@ DisconnectCheck(testCheck := 0)
 		;tooltip(reconnect_debug := "server: " server "(" ServerLabels[server] " : " PossibleServers[server]["type"] "): [" A_Index "]`n" PossibleServers[server]["code"])
 		;Wait For Success
 		i := A_Index, success := 0
+		if MainGame { ;Switch between the main game and the hive hub
+			GameID := HiveHubID
+			MainGame := 0
+		}
+		else if !MainGame {
+			GameID := BssID
+			MainGame := 1
+		}
 		Loop 5 {
 			;Close browser tabs if browser was used
 			if usingBrowser
@@ -17791,7 +17963,13 @@ DisconnectCheck(testCheck := 0)
 			GetRobloxClientPos()
 			MouseMove windowX + windowWidth//2, windowY + windowHeight//2
 			duration := DurationFromSeconds(ReconnectDuration := (nowUnix() - ReconnectStart), "mm:ss")
-			nm_setStatus("Completed", "Reconnect`nTime: " duration " - Attempts: " i)
+			if !MainGame
+				nm_setStatus("Joined", "Hive Hub")
+			else if MainGame
+				nm_setStatus("Joined", "Main Game")
+			else {
+				nm_setStatus("Completed", "Reconnect`nTime: " duration " - Attempts: " i)
+			}
 			Sleep 500
 
 			LastClock:=nowUnix()
@@ -17818,18 +17996,18 @@ DisconnectCheck(testCheck := 0)
 			}
 			PostSubmacroMessage("Status", 0x5552, 221, (server = 0))
 
-			if (testCheck || (nm_claimHiveSlot() = 1))
+			if (testCheck || (nm_claimHiveSlot() = 1) || !MainGame && (nm_claimHiveSlot() = 0))
 				return 1
 		}
 
 		RunDeeplink(type:="", code:=""){
 			switch type {
 				case "LinkCode":
-					try Run '"roblox://placeID=1537690962&linkcode=' code '"'
+						try Run '"roblox://placeID=' GameID '&linkcode=' code '"'
 				case "ShareCode":
-					try Run '"roblox://navigation/share_links?code=' code '&type=Server"'
+						try Run '"roblox://navigation/share_links?code=' code '&type=Server"'
 				default:
-					try Run '"roblox://placeID=1537690962"'
+					try Run '"roblox://placeID=' GameID '"'
 			}
 		}
 
@@ -17913,7 +18091,7 @@ ShellRun(prms*)
 	shell.ShellExecute(prms*)
 }
 nm_claimHiveSlot(){
-	global KeyDelay, FwdKey, RightKey, LeftKey, BackKey, ZoomOut, HiveSlot, HiveConfirmed, SC_E, SC_Esc, SC_R, SC_Enter, bitmaps
+	global KeyDelay, FwdKey, RightKey, LeftKey, BackKey, ZoomOut, HiveSlot, HiveConfirmed, SC_E, SC_Esc, SC_R, SC_Enter, bitmaps, MainGame
 	GetBitmap() {
 		pBMScreen := Gdip_BitmapFromScreen(windowX+windowWidth//2-200 "|" windowY+offsetY "|400|125")
 		loop 20 {
@@ -17930,151 +18108,136 @@ nm_claimHiveSlot(){
 		}
 		return pBMScreen
 	}
-
 	DetectHiveslots := 1
-	Loop 5
-	{
-		ActivateRoblox()
-		hwnd := GetRobloxHWND()
-		offsetY := GetYOffset(hwnd)
-		GetRobloxClientPos(hwnd)
-		MouseMove windowX+350, windowY+offsetY+100
 
-		;reset
-		if (A_Index > 1)
-		{
-			resetTime:=nowUnix()
-			PostSubmacroMessage("background", 0x5554, 1, resetTime)
+	if !MainGame
+		return 1
+	else if MainGame {
+		Loop 5 {
 			ActivateRoblox()
-			PrevKeyDelay := A_KeyDelay
-			SetKeyDelay 250+KeyDelay
-			send "{" SC_Esc "}{" SC_R "}{" SC_Enter "}"
-			SetKeyDelay PrevKeyDelay
-			n := 0
-			while ((n < 2) && (A_Index <= 80))
+			hwnd := GetRobloxHWND()
+			offsetY := GetYOffset(hwnd)
+			GetRobloxClientPos(hwnd)
+			MouseMove windowX+350, windowY+offsetY+100
+
+			;reset
+			if (A_Index > 1)
 			{
-				Sleep 100
-				GetRobloxClientPos(hwnd)
-				pBMScreen := Gdip_BitmapFromScreen(windowX "|" windowY "|" windowWidth "|50")
-				n += (Gdip_ImageSearch(pBMScreen, bitmaps["emptyhealth"], , , , , , 10) = (n = 0))
-				Gdip_DisposeImage(pBMScreen)
-			}
-			Sleep 1000
-		}
-
-		; detect unclaimed hive slots.
-		if DetectHiveslots {
-			preferred := (ClaimMethod = "Detect") ? 0 : HiveSlot
-			if ClaimMethod = "Detect" {
-				slots := nm_detectHiveSlots()
-				for i, slot in slots {
-					if (HiveSlot = slot.HiveSlot && slot.Claimed = "Empty") {
-						preferred := HiveSlot
-						break
-					}
+				resetTime:=nowUnix()
+				PostSubmacroMessage("background", 0x5554, 1, resetTime)
+				ActivateRoblox()
+				PrevKeyDelay := A_KeyDelay
+				SetKeyDelay 250+KeyDelay
+				send "{" SC_Esc "}{" SC_R "}{" SC_Enter "}"
+				SetKeyDelay PrevKeyDelay
+				n := 0
+				while ((n < 2) && (A_Index <= 80))
+				{
+					Sleep 100
+					GetRobloxClientPos(hwnd)
+					pBMScreen := Gdip_BitmapFromScreen(windowX "|" windowY "|" windowWidth "|50")
+					n += (Gdip_ImageSearch(pBMScreen, bitmaps["emptyhealth"], , , , , , 10) = (n = 0))
+					Gdip_DisposeImage(pBMScreen)
 				}
+				Sleep 1000
+			}
 
-				if (!preferred) {
+			; detect unclaimed hive slots.
+			if DetectHiveslots {
+				preferred := (ClaimMethod = "Detect") ? 0 : HiveSlot
+				if ClaimMethod = "Detect" {
+					slots := nm_detectHiveSlots()
 					for i, slot in slots {
-						if (slot.Claimed = "Empty") {
-							preferred := slot.HiveSlot
+						if (HiveSlot = slot.HiveSlot && slot.Claimed = "Empty") {
+							preferred := HiveSlot
 							break
 						}
 					}
+
+					if (!preferred) {
+						for i, slot in slots {
+							if (slot.Claimed = "Empty") {
+								preferred := slot.HiveSlot
+								break
+							}
+						}
+					}
 				}
-			}
-			if (preferred) {
-				movement := nm_spawnMoveTo(slotMove[preferred])
-				nm_createWalk(movement)
-				KeyWait "F14", "D T5 L"
-				KeyWait "F14", "T20 L"
-				nm_endWalk()
-				sleep 500
-				pBMScreen := GetBitmap()
-				if (Gdip_ImageSearch(pBMScreen, bitmaps["claimhive"], , , , , , 2, , 6) = 1) {
+				if (preferred) {
+					movement := nm_spawnMoveTo(slotMove[preferred])
+					nm_createWalk(movement)
+					KeyWait "F14", "D T5 L"
+					KeyWait "F14", "T20 L"
+					nm_endWalk()
+					sleep 500
+					pBMScreen := GetBitmap()
+					if (Gdip_ImageSearch(pBMScreen, bitmaps["claimhive"], , , , , , 2, , 6) = 1) {
+						Gdip_DisposeImage(pBMScreen)
+						Send "{" SC_E " down}"
+						sleep 100
+						Send "{" SC_E " up}"
+						HiveConfirmed := 1
+						HiveSlot := preferred
+						MainGui["HiveSlot"].Text := HiveSlot
+						IniWrite HiveSlot, "settings\nm_config.ini", "Settings", "HiveSlot"
+						nm_setStatus("Claimed", "Hive Slot " HiveSlot)
+						MouseMove windowX+350, windowY+offsetY+100
+						return 1
+					}
 					Gdip_DisposeImage(pBMScreen)
-					Send "{" SC_E " down}"
-					sleep 100
-					Send "{" SC_E " up}"
-					HiveConfirmed := 1
-					HiveSlot := preferred
-					MainGui["HiveSlot"].Text := HiveSlot
-					IniWrite HiveSlot, "settings\nm_config.ini", "Settings", "HiveSlot"
-					nm_setStatus("Claimed", "Hive Slot " HiveSlot)
-					MouseMove windowX+350, windowY+offsetY+100
-					return 1
 				}
-				Gdip_DisposeImage(pBMScreen)
-			}
-			DetectHiveslots := 0
-			continue
-		}
-
-		; old system
-		
-		;go to slot 1
-		Sleep 500
-		GetRobloxClientPos(hwnd)
-		MouseMove windowX+350, windowY+offsetY+100
-		send "{" ZoomOut " 8}"
-
-		movement :=
-		(
-		'Send "{' RightKey ' down}"
-		Walk(4)
-		Send "{' FwdKey ' down}"
-		Walk(20)
-		Send "{' RightKey ' up}{' FwdKey ' up}"'
-		)
-		nm_createWalk(movement)
-		KeyWait "F14", "D T5 L"
-		KeyWait "F14", "T20 L"
-		nm_endWalk()
-
-		;check slots 1 to old HiveSlot
-		slots := Map()
-		movement := nm_Walk(9.2, LeftKey)
-		Loop HiveSlot
-		{
-			if (A_Index > 1)
-			{
-				nm_createWalk(movement)
-				KeyWait "F14", "D T5 L"
-				KeyWait "F14", "T20 L"
-				nm_endWalk()
+				DetectHiveslots := 0
+				continue
 			}
 
+			; old system
+			
+			;go to slot 1
 			Sleep 500
-			pBMScreen := GetBitmap()
-			if (Gdip_ImageSearch(pBMScreen, bitmaps["claimhive"], , , , , , 2, , 6) = 1)
-				slots[A_Index] := 1
-			Gdip_DisposeImage(pBMScreen)
-		}
+			GetRobloxClientPos(hwnd)
+			MouseMove windowX+350, windowY+offsetY+100
+			send "{" ZoomOut " 8}"
 
-		if (slots.Has(HiveSlot) && (slots[HiveSlot] = 1))
-			break
-		else
-		{
-			if ((slot := ObjMinIndex(slots)) > 0)
+			movement :=
+			(
+			'Send "{' RightKey ' down}"
+			Walk(4)
+			Send "{' FwdKey ' down}"
+			Walk(20)
+			Send "{' RightKey ' up}{' FwdKey ' up}"'
+			)
+			nm_createWalk(movement)
+			KeyWait "F14", "D T5 L"
+			KeyWait "F14", "T20 L"
+			nm_endWalk()
+
+			;check slots 1 to old HiveSlot
+			slots := Map()
+			movement := nm_Walk(9.2, LeftKey)
+			Loop HiveSlot
 			{
-				movement := nm_Walk((HiveSlot - slot) * 9.2, RightKey)
-				nm_createWalk(movement)
-				KeyWait "F14", "D T5 L"
-				KeyWait "F14", "T20 L"
-				nm_endWalk()
+				if (A_Index > 1)
+				{
+					nm_createWalk(movement)
+					KeyWait "F14", "D T5 L"
+					KeyWait "F14", "T20 L"
+					nm_endWalk()
+				}
 
 				Sleep 500
 				pBMScreen := GetBitmap()
-				if (Gdip_ImageSearch(pBMScreen, bitmaps["claimhive"], , , , , , 2, , 6) = 1) {
-					Gdip_DisposeImage(pBMScreen)
-					HiveSlot := slot
-					break
-				}
+				if (Gdip_ImageSearch(pBMScreen, bitmaps["claimhive"], , , , , , 2, , 6) = 1)
+					slots[A_Index] := 1
 				Gdip_DisposeImage(pBMScreen)
 			}
-			else {
-				Loop (6 - HiveSlot)
+
+			if (slots.Has(HiveSlot) && (slots[HiveSlot] = 1))
+				break
+			else
+			{
+				if ((slot := ObjMinIndex(slots)) > 0)
 				{
+					movement := nm_Walk((HiveSlot - slot) * 9.2, RightKey)
 					nm_createWalk(movement)
 					KeyWait "F14", "D T5 L"
 					KeyWait "F14", "T20 L"
@@ -18084,17 +18247,35 @@ nm_claimHiveSlot(){
 					pBMScreen := GetBitmap()
 					if (Gdip_ImageSearch(pBMScreen, bitmaps["claimhive"], , , , , , 2, , 6) = 1) {
 						Gdip_DisposeImage(pBMScreen)
-						HiveSlot += A_Index
-						break 2
+						HiveSlot := slot
+						break
 					}
 					Gdip_DisposeImage(pBMScreen)
 				}
-			}
-		}
+				else {
+					Loop (6 - HiveSlot)
+					{
+						nm_createWalk(movement)
+						KeyWait "F14", "D T5 L"
+						KeyWait "F14", "T20 L"
+						nm_endWalk()
 
-		nm_setStatus("Failed", "Claim Hive Slot" ((A_Index > 1) ? (" (Attempt " A_Index ")") : ""))
-		if (A_Index = 5)
-			return 0
+						Sleep 500
+						pBMScreen := GetBitmap()
+						if (Gdip_ImageSearch(pBMScreen, bitmaps["claimhive"], , , , , , 2, , 6) = 1) {
+							Gdip_DisposeImage(pBMScreen)
+							HiveSlot += A_Index
+							break 2
+						}
+						Gdip_DisposeImage(pBMScreen)
+					}
+				}
+			}
+
+			nm_setStatus("Failed", "Claim Hive Slot" ((A_Index > 1) ? (" (Attempt " A_Index ")") : ""))
+			if (A_Index = 5)
+				return 0
+		}
 	}
 
 	SendInput "{" SC_E " down}"
@@ -20508,8 +20689,14 @@ nm_PathVars(){
 }
 nm_gotoField(location){
 	global HiveConfirmed:=0
-	path := paths["gtf"][StrReplace(location, " ")]
-
+	if (location = "Hivehub") {
+		CloseRoblox()
+		DisconnectCheck()
+		path := paths["gtf"][StrReplace(location, " ")]
+	} else { 
+		path := paths["gtf"][StrReplace(location, " ")]
+	}
+	
 	nm_setShiftLock(0)
 
 	nm_createPath(path)
@@ -20518,7 +20705,12 @@ nm_gotoField(location){
 	nm_endWalk()
 }
 nm_walkFrom(field){
-	path := paths["wf"][StrReplace(field, " ")]
+	if !MainGame {
+		CloseRoblox()
+		DisconnectCheck()
+	} else { 
+		path := paths["wf"][StrReplace(field, " ")]
+	}
 
 	nm_setShiftLock(0)
 
