@@ -1836,13 +1836,15 @@ nm_importFieldDefaults()
 		, "turns", 1
 		, "sprinkler", "Center"
 		, "distance", 1
-		, "percent", 95
-		, "gathertime", 1440
+		, "percent", 100
+		, "gathertime", 60
 		, "convert", "Reset"
 		, "drift", 0
 		, "shiftlock", 1
 		, "invertFB", 0
 		, "invertLR", 0)
+
+if InactiveSwitch 
 
 	global StandardFieldDefault := ObjFullyClone(FieldDefault)
 
@@ -2103,9 +2105,10 @@ QuestBlueBoost := 0
 QuestRedBoost := 0
 HiveConfirmed := 0
 ShiftLockEnabled := 0
+InactiveSwitch := 0
 HiveHubID:="15579077077"
 BssID:="1537690962"
-MainGame := 1
+MainGame := 1	; Switch from 1 to 0
 VBStart := 0
 VBResults := {
 	; status states
@@ -2915,7 +2918,8 @@ MainGui.Add("Text", "x278 y39 w47 h18 0x201")
 MainGui.Add("UpDown", "Range0-9999 vKeyDelay Disabled", KeyDelay).OnEvent("Change", nm_saveKeyDelay)
 
 ;reconnect settings
-MainGui.Add("Button", "x248 y64 w40 h16 vTestReconnectButton Disabled", "Test").OnEvent("Click", nm_testReconnect)
+MainGui.Add("Button", "x244 y64 w40 h16 vTestReconnectButton Disabled", "Test").OnEvent("Click", nm_testReconnect)
+MainGui.Add("Button", "x286 y64 w40 h16 vSwitchReconnectButton Disabled", (MainGame ? "Hub" : "Main")).OnEvent("Click", nm_SwitchReconnect)
 MainGui.Add("Text", "x178 y82 +BackgroundTrans", "Private Server Link:")
 MainGui.Add("Edit", "x176 yp+13 w148 h16 vPrivServer Disabled", PrivServer).OnEvent("Change", nm_ServerLink)
 MainGui.Add("Text", "x178 yp+21 +BackgroundTrans", "Join Method:")
@@ -4322,6 +4326,7 @@ nm_TabSettingsLock(){
 	MainGui["ResetFieldDefaultsButton"].Enabled := 0
 	MainGui["ResetAllButton"].Enabled := 0
 	MainGui["TestReconnectButton"].Enabled := 0
+	MainGui["SwitchReconnectButton"].Enabled := 0
 	MainGui["ReconnectMethodHelp"].Enabled := 0
 	MainGui["ReconnectInterval"].Enabled := 0
 	MainGui["ReconnectHour"].Enabled := 0
@@ -4366,6 +4371,7 @@ nm_TabSettingsUnLock(){
 	MainGui["ResetFieldDefaultsButton"].Enabled := 1
 	MainGui["ResetAllButton"].Enabled := 1
 	MainGui["TestReconnectButton"].Enabled := 1
+	MainGui["SwitchReconnectButton"].Enabled := 1
 	MainGui["ReconnectMethodHelp"].Enabled := 1
 	MainGui["ReconnectInterval"].Enabled := 1
 	MainGui["ReconnectHour"].Enabled := 1
@@ -4763,6 +4769,10 @@ nm_FieldDefaults(num){
 		FieldRotateTimes%num%:=1
 		FieldDriftCheck%num%:=1
 	} else {
+		if !InactiveSwitch {					; TODO, possiblement le moyen de switch le pattern
+			FieldPattern%num%:="Squares"
+			nm_SetStatus(FieldPattern%num%)
+		}
 		FieldPattern%num%:=FieldDefault[FieldName%num%]["pattern"]
 		FieldPatternSize%num%:=FieldDefault[FieldName%num%]["size"]
 		FieldPatternReps%num%:=FieldDefault[FieldName%num%]["width"]
@@ -4785,7 +4795,7 @@ nm_FieldDefaults(num){
 	MainGui["FieldPatternShift" num].Value := FieldPatternShift%num%
 	MainGui["FieldPatternInvertFB" num].Value := FieldPatternInvertFB%num%
 	MainGui["FieldPatternInvertLR" num].Value := FieldPatternInvertLR%num%
-	MainGui["FieldUntilMins" num].Value := FieldUntilMins%num%
+	MainGui["FieldUntilMins" num].Value := FieldUntilMins%num%					; TODO, check ici quoi faire
 	MainGui["FieldUntilPack" num].Text := FieldUntilPack%num%
 	MainGui["FieldUntilPack" num "UpDown"].Value := FieldUntilPack%num%//5
 	MainGui["FieldReturnType" num].Text := FieldReturnType%num%
@@ -4869,7 +4879,7 @@ nm_HiveHubWarning(GuiCtrl?, *){
 	WARNING:
 	You selected to gather on the Hive Hub field, which means that you will be teleported in a Hivehub server to gather and not the main game.
 	Enabling any other tabs such as Collect/Kill, Boost, Quests, Planters will result in a lot of teleporting between those two games.
-	Some options are disabled because they can't be used whiele gathering on the hive hub (sprinkler, dices and such).
+	Some options are disabled because they can't be used while gathering on the hive hub (sprinkler, dices and such).
 	)", "Hive Hub Gathering", 0x40000
 	}
 }
@@ -7977,6 +7987,11 @@ nm_ResetAllFieldDefaults(*){
 		}
 	}
 }
+nm_SwitchReconnect(*){
+	global MainGame
+	MainGame := MainGame ? 0 : 1
+	MainGui["SwitchReconnectButton"].Text := MainGame ? "Hub" : "Main"
+}
 nm_testReconnect(*){
 	CloseRoblox()
 	if (DisconnectCheck(1) = 1)
@@ -7992,7 +8007,7 @@ nm_ServerLink(GuiCtrl, *){
 	p := EditGetCurrentCol(GuiCtrl)
 	k := GuiCtrl.Name
 	str := Trim(GuiCtrl.Value)
-	RegExMatch(str, "i)roblox\.com\/([a-z]{2}\/)?games\/(?:15579077077|1537690962)\/?([^\/]*)\?privateServerLinkCode=(?<code>[a-z0-9]{32})", &NewPrivLink) ; TODO might cause trouble
+	RegExMatch(str, "i)roblox\.com\/([a-z]{2}\/)?games\/(?:15579077077|1537690962)\/?([^\/]*)\?privateServerLinkCode=(?<code>[a-z0-9]{32})", &NewPrivLink)
 	RegExMatch(str, "i)roblox\.com\/share\?code=(?<code>[a-f0-9]{32})&type=Server", &NewShareCode)
 
 	
@@ -11217,10 +11232,9 @@ nm_Reset(checkAll:=1, wait:=2000, convert:=1, force:=0){
 		nm_fieldBoostBooster()
 		nm_Night()
 	}
-	if(force=1 && !TestReset) { ; TODO TestReset in same if condition
+	if(force=1 && !TestReset)
 		HiveConfirmed:=0
-	}
-	if TestReset
+	else if TestReset
 		HiveConfirmed:=1
 	while (!HiveConfirmed) {
 		;failsafe game frozen
@@ -16437,7 +16451,7 @@ nm_Mondo(){
 	}
 }
 nm_GoGather(){
-	global youDied
+	global youDied, InactiveSwitch
 		, TCFBKey, AFCFBKey, TCLRKey, AFCLRKey, FwdKey, LeftKey, BackKey, RightKey, RotLeft, RotRight, SC_E, KeyDelay
 		, MoveMethod
 		, CurrentFieldNum
@@ -16865,7 +16879,20 @@ nm_GoGather(){
 				;inactive honey
 				if (BackpackPercentFiltered<FieldUntilPack) {
 					inactiveHoney := (nm_activeHoney() = 0) ? inactiveHoney + 1 : 0
-					if (inactiveHoney>30) {
+					if (inactiveHoney>30 && currentField != "Hivehub") {
+						interruptReason := "Inactive Honey"
+						GameFrozenCounter++
+						break
+					} if (inactiveHoney>20 && currentField = "Hivehub" && !InactiveSwitch) {
+						nm_setStatus("Inactive Honey", "Retrying 'Scythe' pattern")
+						IniWrite FieldDefault[FieldName]["pattern"] := pattern, "settings\field_config.ini", FieldName, "pattern"
+						interruptReason := "Inactive Honey"
+						GameFrozenCounter++
+						InactiveSwitch := 1
+						break
+					} if (inactiveHoney>20 && currentField = "Hivehub" && InactiveSwitch) {
+						nm_setStatus("Inactive Honey", "Using 'Squares' pattern")
+						IniWrite FieldDefault[FieldName]["pattern"] := pattern, "settings\field_config.ini", FieldName, "pattern"
 						interruptReason := "Inactive Honey"
 						GameFrozenCounter++
 						break
@@ -17840,13 +17867,13 @@ DisconnectCheck(testCheck := 0)
 		;tooltip(reconnect_debug := "server: " server "(" ServerLabels[server] " : " PossibleServers[server]["type"] "): [" A_Index "]`n" PossibleServers[server]["code"])
 		;Wait For Success
 		i := A_Index, success := 0
-		if MainGame { ;Switch between the main game and the hive hub
+		if MainGame {				; Switch between the main game and the hive hub
 			GameID := HiveHubID
-			MainGame := 0
+			nm_SwitchReconnect()
 		}
 		else if !MainGame {
 			GameID := BssID
-			MainGame := 1
+			nm_SwitchReconnect()
 		}
 		Loop 5 {
 			;Close browser tabs if browser was used
